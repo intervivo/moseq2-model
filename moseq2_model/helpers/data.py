@@ -16,14 +16,13 @@ from moseq2_model.train.models import flush_print
 from moseq2_model.train.util import whiten_all, whiten_each
 
 
-def process_indexfile(index, data_metadata, default_group="n/a", select_groups=False):
+def process_indexfile(index, data_metadata, select_groups=False):
     """
     Read index file (if applicable) and return dictionaries containing metadata in the index file.
 
     Args:
     index (str or None): path to index file.
     data_metadata (dict): loaded metadata containing uuid and group information.
-    default_group (str): default group name to supply to data without assigned group labels
     select_groups (bool): when True, print metadata describing group selection
 
     Returns:

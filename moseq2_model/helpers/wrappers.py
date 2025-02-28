@@ -9,7 +9,7 @@ import click
 import numpy as np
 from copy import deepcopy
 from cytoolz import valmap
-from moseq2_model.train.util import train_model, run_e_step, apply_model
+from moseq2_model.train.util import train_model, run_e_step, apply_model, get_crosslikes
 from os.path import join, basename, realpath, dirname, splitext
 from moseq2_model.util import (
     save_dict,
@@ -87,7 +87,6 @@ def learn_model_wrapper(input_file, dest_file, config_data):
     index_data, data_metadata = process_indexfile(
         config_data.get("index", None),
         data_metadata,
-        config_data["default_group"],
         select_groups,
     )
 
@@ -160,7 +159,11 @@ def learn_model_wrapper(input_file, dest_file, config_data):
         groups=groupings,
         check_every=config_data["check_every"],
         verbose=config_data["verbose"],
+        save_every=config_data["save_every"],
     )
+
+    if isinstance(labels, dict):
+        print("Saving multiple model resamples as dict")
 
     click.echo("Computing likelihoods on each training dataset...")
     # Get training log-likelihoods
@@ -182,13 +185,12 @@ def learn_model_wrapper(input_file, dest_file, config_data):
         click.echo("Running E step...")
         expected_states = run_e_step(arhmm)
 
-    # TODO: just compute cross-likes at the end and potentially dump the model (what else
-    # would we want the model for hm?), though hard drive space is cheap, recomputing models is not...
+    _, avg_cl = get_crosslikes(arhmm, frame_by_frame=False, normalize_by_frame_count=True)
 
     # Pack model data
     export_dict = {
         "loglikes": loglikes,
-        "labels": labels,
+        "labels": labels[max(labels.keys())] if isinstance(labels, dict) else labels,
         "keys": all_keys,
         "heldout_ll": heldout_ll,
         "model_parameters": save_parameters,
@@ -201,7 +203,11 @@ def learn_model_wrapper(input_file, dest_file, config_data):
         "expected_states": expected_states if config_data["e_step"] else None,
         "whitening_parameters": whitening_parameters,
         "pc_score_path": os.path.abspath(input_file),
+        "average_crosslikes": avg_cl,
     }
+
+    if isinstance(labels, dict):
+        export_dict["label_resamples"] = labels
 
     # Save model
     save_dict(filename=dest_file, obj_to_save=export_dict)
@@ -261,7 +267,6 @@ def apply_model_wrapper(model_file, pc_file, dest_file, config_data):
     index_data, data_metadata = process_indexfile(
         config_data.get("index", None),
         data_metadata,
-        config_data.get("default_group", "n/a"),
         select_groups=False,
     )
 

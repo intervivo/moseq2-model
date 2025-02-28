@@ -201,12 +201,6 @@ def modeling_parameters(function):
     help="Path to moseq2-index.yaml for group definitions",
 )
 @click.option(
-    "--default-group",
-    type=str,
-    default="n/a",
-    help="Default group name to use for separate-trans",
-)
-@click.option(
     "--verbose",
     "-v",
     is_flag=True,

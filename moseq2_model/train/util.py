@@ -24,6 +24,7 @@ def train_model(
     groups=None,
     verbose=False,
     check_every=2,
+    save_every=None
 ):
     """
     Train ARHMM for inputted number of iterations.
@@ -56,6 +57,7 @@ def train_model(
     checkpoint = checkpoint_freq is not None
 
     iter_lls, iter_holls = [], []
+    labels = {}
 
     for itr in tqdm(range(start, num_iter), **progress_kwargs, desc="Training ARHMM"):
         # Resample states, and gracefully return in case of a keyboard interrupt
@@ -88,14 +90,19 @@ def train_model(
             if ho_ll is not None:
                 iter_holls.append(ho_ll)
 
+        if save_every and save_every > 0 and (itr + 1) % save_every == 0:
+            labels[itr] = get_labels_from_model(model)
+
         # checkpoint if needed
         if checkpoint and ((itr + 1) % checkpoint_freq == 0):
             training_checkpoint(model, itr, checkpoint_file)
 
+        labels[itr] = get_labels_from_model(model)
+
     return (
         model,
         model.log_likelihood(),
-        get_labels_from_model(model),
+        labels if save_every else labels[itr],
         iter_lls,
         iter_holls,
         False,
@@ -339,13 +346,14 @@ def zscore_all(data_dict, npcs=10, center=True):
 
 
 # taken from syllables by @alexbw
-def get_crosslikes(arhmm, frame_by_frame=False):
+def get_crosslikes(arhmm, frame_by_frame=False, normalize_by_frame_count=False):
     """
     Get the cross-likelihoods, a measure of confidence in label segmentation, for each model label.
 
     Args:
     arhmm: the ARHMM model object
     frame_by_frame (bool): if True, the cross-likelihoods will be computed for each frame.
+    normalize_by_frame_count (bool): if True, the cross-likelihoods will be normalized by the number of frames in each syllable pair
 
     Returns:
     All_CLs (list): a dictionary containing cross-likelihoods for each syllable pair.
@@ -368,7 +376,10 @@ def get_crosslikes(arhmm, frame_by_frame=False):
         for s in arhmm.states_list:
             for j in range(Nstates):
                 for sl in slices_from_indicators(s.stateseq == j):
-                    likes = np.nansum(s.aBl[sl], axis=0)
+                    if normalize_by_frame_count:
+                        likes = np.nanmean(s.aBl[sl], axis=0)
+                    else:
+                        likes = np.nansum(s.aBl[sl], axis=0)
                     for i in range(Nstates):
                         all_CLs[(i, j)].append(likes[i] - likes[j])
 
