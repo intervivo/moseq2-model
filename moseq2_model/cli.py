@@ -2,7 +2,6 @@
 CLI for modeling the data using AR-HMM.
 """
 
-import os
 import click
 from os.path import join
 from moseq2_model.util import count_frames as count_frames_wrapper

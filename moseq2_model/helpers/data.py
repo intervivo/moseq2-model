@@ -5,13 +5,12 @@ Helper functions for reading data from index files, and preparing metadata prior
 import click
 import random
 import warnings
-import itertools
 import numpy as np
 import ruamel.yaml as yaml
 import matplotlib.pyplot as plt
 from cytoolz import pluck, curried
 from collections import OrderedDict
-from os.path import join, exists, dirname
+from os.path import join, exists
 from moseq2_model.util import count_frames
 from moseq2_model.train.models import flush_print
 from moseq2_model.train.util import whiten_all, whiten_each
