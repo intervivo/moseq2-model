@@ -55,6 +55,7 @@ def train_model(
 
     # Checkpointing boolean
     checkpoint = checkpoint_freq is not None
+    save_every_flag = save_every is not None and save_every > 0
 
     iter_lls, iter_holls = [], []
     labels = {}
@@ -90,7 +91,7 @@ def train_model(
             if ho_ll is not None:
                 iter_holls.append(ho_ll)
 
-        if save_every and save_every > 0 and (itr + 1) % save_every == 0:
+        if save_every_flag and (itr + 1) % save_every == 0:
             labels[itr] = get_labels_from_model(model)
 
         # checkpoint if needed
@@ -102,7 +103,7 @@ def train_model(
     return (
         model,
         model.log_likelihood(),
-        labels if save_every else labels[itr],
+        labels if save_every_flag else labels[itr],
         iter_lls,
         iter_holls,
         False,
