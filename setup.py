@@ -27,7 +27,7 @@ except ImportError:
 try:
     import cython
 except ImportError:
-    install("cython")
+    install("cython==0.29.14")
 
 
 def read(rel_path):
