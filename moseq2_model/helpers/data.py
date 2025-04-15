@@ -210,7 +210,6 @@ def prepare_model_metadata(data_dict, data_metadata, config_data):
         data_dict, whitening_parameters = whiten_each(data_dict)
     else:
         click.echo("Not whitening the data")
-
     # Applying Additive White Gaussian Noise
     if config_data["noise_level"] > 0:
         click.echo(f'Using {config_data["noise_level"]} STD AWGN.')

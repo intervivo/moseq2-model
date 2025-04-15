@@ -18,7 +18,7 @@ from autoregressive.util import AR_striding
 from os.path import basename, getctime, join, exists
 
 
-def load_pcs(filename, var_name="features", load_groups=False, npcs=10):
+def load_pcs(filename, var_name="features", load_groups=False, npcs=10, nan_zeros=False):
     """
     Load the Principal Component Scores for modeling.
 
@@ -116,6 +116,12 @@ def load_pcs(filename, var_name="features", load_groups=False, npcs=10):
                 metadata["uuids"] = list(f["metadata"])
     else:
         raise ValueError("Did not understand filetype")
+
+    if nan_zeros:
+        print("NaN-ing out zeroed frames")
+        for k, v in data_dict.items():
+            v[np.all(v == 0, axis=1)] = np.nan
+            data_dict[k] = v
 
     return data_dict, metadata
 
@@ -578,6 +584,9 @@ def get_parameter_strings(config_data):
 
     if config_data["e_step"]:
         parameters += "--e-step "
+
+    if config_data["nan_zeroed_frames"]:
+        parameters += "--nan-zeroed-frames "
 
     if config_data["hold_out"]:
         parameters += f'--hold-out --nfolds {config_data["nfolds"]} '

@@ -4,7 +4,7 @@ CLI for modeling the data using AR-HMM.
 
 import click
 from os.path import join
-from moseq2_model.util import count_frames as count_frames_wrapper
+from moseq2_model.util import count_frames
 from moseq2_model.helpers.wrappers import (
     learn_model_wrapper,
     kappa_scan_fit_models_wrapper,
@@ -38,9 +38,9 @@ def cli():
     default="scores",
     help="Variable name in input file with PCs",
 )
-def count_frames(input_file, var_name):
+def count_frames_cli(input_file, var_name):
     # Count the number of frames in the input file.
-    count_frames_wrapper(input_file=input_file, var_name=var_name)
+    count_frames(input_file=input_file, var_name=var_name)
 
 
 def modeling_parameters(function):
@@ -110,6 +110,12 @@ def modeling_parameters(function):
         type=str,
         default="all",
         help="Whiten PCs: (e)each session (a)ll combined or (n)o whitening",
+    )(function)
+    function = click.option(
+        "--nan-zeroed-frames",
+        type=bool,
+        is_flag=True,
+        help="Flag that discards frames without a mouse",
     )(function)
     function = click.option(
         "--progressbar", "-p", type=bool, default=True, help="Show model progress"

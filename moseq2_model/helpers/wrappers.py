@@ -79,6 +79,7 @@ def learn_model_wrapper(input_file, dest_file, config_data):
         var_name=config_data.get("var_name", "scores"),
         npcs=config_data["npcs"],
         load_groups=config_data["load_groups"],
+        nan_zeros=config_data.get("nan_zeroed_frames", False),
     )
 
     # Parse index file and update metadata information; namely groups
@@ -346,8 +347,3 @@ def kappa_scan_fit_models_wrapper(input_file, config_data, output_dir):
         os.system(command_string)
 
     return command_string
-
-
-def count_frames_wrapper(input_file):
-    # count frames from pc scores
-    pass
